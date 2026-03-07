@@ -1,6 +1,9 @@
 ---
 title: "Lab 3 - Data tidying and joining"
 categories: "Lab"
+author: "Kathrine Marattil"
+date: "Mar 2, 2026"
+format: pdf
 ---
 
 # Introduction
@@ -109,6 +112,19 @@ b.  Display a list of the countries included in the dataset.
 A function that can be useful for part (b) is `pull()`. Check out its documentation for examples of usage.
 :::
 
+```{r}
+#a
+glimpse(country_inflation)
+
+```
+
+**There are 44 rows, each row represents a specific country's inflation. There are 30 columns, each column, aside from the first, represents the inflation rate of the given year for all countries specified in the row**
+
+```{r}
+#b
+country_inflation |> pull(1)
+```
+
 ### Question 2
 
 Which countries had the top three highest inflation rates in 2021? Your output should be a data frame with two columns, `country` and `2021`, with inflation rates in descending order, and three rows for the top three countries. Briefly comment on how the inflation rates for these countries compare to the inflation rate for United States in that year.
@@ -116,6 +132,16 @@ Which countries had the top three highest inflation rates in 2021? Your output s
 ::: callout-tip
 Column names that are numbers are not considered "proper" in R, therefore to select them you'll need to surround them with backticks, e.g. `select(` `` ` `` `1993` `` ` `` `)`.
 :::
+
+```{r}
+top_three <- country_inflation |>
+  select(country, `2021`)  |>
+  slice_max(order_by = `2021`, n = 3) #slice_max is ordered by desending 
+
+top_three
+```
+
+**All the top three inflation rates are more than double the inflation rate of the United States in 2021, with the top two inflation rates from Argentina and Türkiye being significantly greater than all the other countries in that year.**
 
 ### Question 3
 
@@ -133,6 +159,19 @@ Which country's inflation change is the largest over this time period? Did infla
 For this question you'll once again need to use variables whose names are numbers (years) in your pipeline. Make sure to surround the names of such variables with backticks (`` ` ``).
 :::
 
+```{r}
+
+country_inflation |>
+  mutate(
+    inf_ratio = `2021`/`1993`
+  ) |>
+  arrange(desc(inf_ratio)) |>
+  select(country,inf_ratio )
+
+```
+
+**New Zealand has the highest ratio, thus it has the greatest change in the given time frame . This is seen by how the inflation rate for New Zealand has increase from 1993 to 2021.**
+
 ### Question 4
 
 Reshape (pivot) `country_inflation` such that each row represents a country/year combination, with columns `country`, `year`, and `annual_inflation`. Then, display the resulting data frame and state how many rows and columns it has.
@@ -147,6 +186,23 @@ Requirements:
 The remaining questions in Part 1 require the use of the pivoted data frame from Question 4.
 :::
 
+```{r}
+#pivot_wider is less row, more col
+#pivot_longer is more row, less col
+
+country_yr <-country_inflation |>
+  pivot_longer(
+    cols = -country,                  # not needed to use coluntry bc it is index
+    names_to = "year",                # all columns become row
+    values_to = "annual_inflation",   # values in the year columns group into new column
+    names_transform = as.numeric
+  )
+
+country_yr
+```
+
+**The resulting dataframes has 3 columns and 1276 rows.**
+
 ### Question 5
 
 Use a separate, single pipeline to answer each of the following questions.
@@ -155,16 +211,41 @@ Requirement: Your code must use the `filter()` function for each part, not `arra
 
 a.  What is the highest inflation rate observed between 1993 and 2021? The output of the pipeline should be a data frame with one row and three columns. In addition to code and output, your response should include a single sentence stating the country and year.
 
+    ```{r}
+    #a
+    country_yr |>
+      filter (annual_inflation == max(annual_inflation, na.rm = TRUE)) #show only max value
+    ```
+
+    **Brazil, 1994**
+
 b.  What is the lowest inflation rate observed between 1993 and 2021? The output of the pipeline should be a data frame with one row and three columns. In addition to code and output, your response should include a single sentence stating the country and year.
 
+    ```{r}
+    #b
+    country_yr |>
+      filter (annual_inflation == min(annual_inflation, na.rm = TRUE)) #show only min value
+    ```
+
+    **Ireland, 2009**
+
 c.  Putting (a) and (b) together: What are the highest and the lowest inflation rates observed between 1993 and 2021? The output of the pipeline should be a data frame with two rows and three columns.
+
+    ```{r}
+    #c
+    country_yr |>
+      filter (
+        annual_inflation == max(annual_inflation, na.rm = TRUE) | 
+        annual_inflation == min(annual_inflation, na.rm = TRUE)
+        )
+    ```
 
 ### Question 6
 
 a\. Create a vector called `countries_of_interest` which contains the names of up tp five countries you want to visualize the inflation rates for over the years. For example, if these countries are Türkiye and United States, you can express this as follows:
 
 ```{r}
-countries_of_interest <- c("Türkiye", "United States")
+countries_of_interest <- c("Türkiye", "United States") #c creates vector
 ```
 
 If they are Türkiye, United States, and China, you can express this as follows:
@@ -181,11 +262,28 @@ So on and so forth... Then, in 1-2 sentences, state why you chose these countrie
 Your `countries_of_interest` should consist of no more than five countries. Make sure that the spelling of your countries matches how they appear in the dataset.
 :::
 
+```{r}
+countries_of_interest <- c("Brazil", "Ireland", "Argentina", "New Zealand")
+```
+
+**I chose:**
+
+-   **Brazil: to examine its change in inflation rate, since its high point in 1994**
+-   **Ireland: to examine its change in inflation rate, since its low point in 2009**
+-   **Argentina : to examine the increase of inflation rate to allow it the greatest inflation rate of 2021**
+-   **New Zealand: to examines its high change of inflation rate over the years**
+
 b\. In a single pipeline, filter your reshaped dataset to include only the `countries_of_interest` from part (a), and save the resulting data frame with a new name so you (1) can refer to this data frame later in your analysis and (2) do not overwrite the data frame you're starting with. Use a short but informative name. Then, in a new pipeline, find the `distinct()` countries in the data frame you created.
 
 ::: callout-tip
 The number of distinct countries in the filtered data frame you created in part (b) should equal the number of countries you chose in part (a). If it doesn't, you might have misspelled a country name or made a mistake in how to filter for these countries. Go back and check your code.
 :::
+
+```{r}
+interested_countries <- country_yr|>
+  filter (country %in% countries_of_interest)
+interested_countries
+```
 
 ### Question 7
 
@@ -203,11 +301,27 @@ Requirements for the plot:
 If you haven't yet done so, now is a good time to render, commit, and push. Make sure that you commit and push all changed documents and your Git pane is completely empty before proceeding.
 :::
 
+```{r}
+ggplot(interested_countries, aes(x = year, y = annual_inflation, colour = country, shape = country)) + 
+  geom_line()+
+  geom_point() +
+  #facet_wrap(~country) +
+  labs(
+    title = "Annual Inflation Rates per Year, seperated by Country",
+    x = "Year",
+    y = "Annual Inflation"
+  ) +
+  scale_y_continuous(limits = c(-5, 50)) +
+  scale_x_continuous(breaks = seq(1993, 2021, by = 5))
+```
+
+**As expected, Argentina has a significantly higher inflation rate for the latest 3 year recorded, and it seem to have missing data for the previous year. Ireland had a dip into negative inflation rate for a year. I had expected to see a general increased rate of inflation however, while individual years have extreme rates of inflation, New Zealand had the most the obvious increase.**
+
 ## Part 2
 
 **Inflation in the US**
 
-The OECD defines inflation as follows:
+/The OECD defines inflation as follows:
 
 > Inflation is a rise in the general level of prices of goods and services that households acquire for the purpose of consumption in an economy over a period of time.
 >
@@ -236,7 +350,32 @@ cpi_divisions <- read_csv("data/cpi-divisions.csv")
 
 a\. How many columns and how many rows does the `us_inflation` dataset have? What are the variables in it? Add a brief (1-2 sentences) narrative summarizing this information.
 
+```{r}
+#column information
+ncol(us_inflation) 
+colnames(us_inflation)
+
+#row information
+nrow(us_inflation) 
+row.names(us_inflation)
+
+```
+
+**There are 4 columns containing country of origin, CPI division, year, and inflation rate of that given year, respectively. There are 132 rows, which are entry for the annual inflation rate per CPI division in the US.**
+
 b\. How many columns and how many rows does the `cpi_divisions` dataset have? What are the variables in it? Add a brief (1-2 sentences) narrative summarizing this information.
+
+```{r}
+#column information
+ncol(cpi_divisions) 
+colnames(cpi_divisions)
+
+#row information
+nrow(cpi_divisions) 
+row.names(cpi_divisions)
+```
+
+**There are 2 columns and 12 rows. The index, which is also one of the columns, is an assigned value entry for the 12 CPI division in the second column containing the descriptions of the divisions.**
 
 c\. Create a new dataset by joining the `us_inflation` dataset with the `cpi_division_id` dataset.
 
@@ -248,6 +387,16 @@ c\. Create a new dataset by joining the `us_inflation` dataset with the `cpi_div
 
 Then, find the number of rows and columns of the resulting dataset and report the names of its columns. Add a brief (1-2 sentences) narrative summarizing this information.
 
+```{r}
+us_inflation_cpi <-left_join(
+  us_inflation, cpi_divisions,
+  by = c("cpi_division_id"= "id")
+  )
+
+```
+
+**There were 5 columns and 132 rows. Due to join, the new table shows the same table as us_inflation with an added row that matches the cpi_division_id column from us_inflation with id column from cpi_division to create a column that has a description of the cpi division for the given entry specified in cpi_division_id.**
+
 ### Question 9
 
 a\. Create a vector called `divisions_of_interest` which contains the descriptions or IDs of CPI divisions you want to visualize. Your `divisions_of_interest` should consist of no more than five divisions. If you're using descriptions, make sure that the spelling of your divisions matches how they appear in the dataset. Then, in 1-2 sentences, state why you chose these divisions.
@@ -256,7 +405,28 @@ a\. Create a vector called `divisions_of_interest` which contains the descriptio
 Refer back to the guidance provided in [Question 6] if you're not sure how to create this vector.
 :::
 
+```{r}
+divisions_of_interest <- c("Education", "Furnishings, household equipment and routine household maintenance","Communication")
+```
+
+**i chose**
+
+-   **Education:**
+
+-   **Furnishings, household equipment and routine household maintenance:**
+
+-   **Communication:**
+
 b\. In a single pipeline, filter your reshaped dataset to include only the `divisions_of_interest` from part (a), and save the resulting data frame with a new name so you (1) can refer to this data frame later in your analysis and (2) do not overwrite the data frame you're starting with. Use a short but informative name. Then, in a new pipeline, find the `distinct()` divisions in the data frame you created.
+
+```{r}
+interested_division <- us_inflation_cpi|>
+  filter (description %in% divisions_of_interest)
+interested_division
+
+interested_division|>
+  distinct(description)
+```
 
 ### Question 10
 
@@ -270,13 +440,25 @@ Using your data frame from the previous question, create a plot of annual inflat
 -   If your legend has labels that are too long, you can try moving the legend to the bottom and stack the labels vertically. *Hint:* The `legend.position` and `legend.direction` arguments of the `theme()` functions will be useful.
 
 ```{r}
-ggplot(...) +
-  ... +
+ggplot(interested_division, aes(x = year, y = annual_inflation, colour = description, shape = description)) +
+  geom_line()+
+  geom_point() +
+  theme_linedraw()+
+  labs(
+    title = "Annual Inflation Rates per Year, seperated by CPI Divisions",
+    x = "Year",
+    y = "Annual Inflation",
+    color = "CPI Division",
+    shape = "CPI Division"
+  ) +
+  scale_x_continuous(breaks = seq(1993, 2021, by = 5))+
   theme(
     legend.position = "bottom", 
     legend.direction = "vertical"
   )
 ```
+
+**For, (Furnishings, household equipment and routine household maintenance) and (Communication) there is general trend of increase through the years. While Education had a decreasing trend for annual inflation. This decrease,show the decrease in money towards the Education division. Additionally, it was surprising to note the serevre dip in the trend for Communication.**
 
 ::: render-commit-push
 If you haven't yet done so since Part 1, now is a good time to render, commit, and push. Make sure that you commit and push all changed documents and your Git pane is completely empty before proceeding.
@@ -329,5 +511,3 @@ You can earn up to 4 points on each question:
 -   1: Response shows effort and misses many of the rubric items.
 
 -   0: Response does not show sufficient effort or understanding and/or is largely incomplete.
-
-
