@@ -3,7 +3,7 @@ title: "Lab 3 - Data tidying and joining"
 categories: "Lab"
 author: "Kathrine Marattil"
 date: "Mar 2, 2026"
-format: html
+format: pdf
 ---
 
 # Introduction
@@ -201,6 +201,8 @@ country_yr <-country_inflation |>
 country_yr
 ```
 
+**The resulting dataframes has 3 columns and 1276 rows.**
+
 ### Question 5
 
 Use a separate, single pipeline to answer each of the following questions.
@@ -266,10 +268,10 @@ countries_of_interest <- c("Brazil", "Ireland", "Argentina", "New Zealand")
 
 **I chose:**
 
--   **Brazil**
--   **Ireland**
--   **Argentina**
--   **New Zealand**
+-   **Brazil: to examine its change in inflation rate, since its high point in 1994**
+-   **Ireland: to examine its change in inflation rate, since its low point in 2009**
+-   **Argentina : to examine the increase of inflation rate to allow it the greatest inflation rate of 2021**
+-   **New Zealand: to examines its high change of inflation rate over the years**
 
 b\. In a single pipeline, filter your reshaped dataset to include only the `countries_of_interest` from part (a), and save the resulting data frame with a new name so you (1) can refer to this data frame later in your analysis and (2) do not overwrite the data frame you're starting with. Use a short but informative name. Then, in a new pipeline, find the `distinct()` countries in the data frame you created.
 
@@ -312,6 +314,8 @@ ggplot(interested_countries, aes(x = year, y = annual_inflation, colour = countr
   scale_y_continuous(limits = c(-5, 50)) +
   scale_x_continuous(breaks = seq(1993, 2021, by = 5))
 ```
+
+**As expected, Argentina has a significantly higher inflation rate for the latest 3 year recorded, and it seem to have missing data for the previous year. Ireland had a dip into negative inflation rate for a year. I had expected to see a general increased rate of inflation however, while individual years have extreme rates of inflation, New Zealand had the most the obvious increase.**
 
 ## Part 2
 
@@ -453,6 +457,8 @@ ggplot(interested_division, aes(x = year, y = annual_inflation, colour = descrip
     legend.direction = "vertical"
   )
 ```
+
+**For, (Furnishings, household equipment and routine household maintenance) and (Communication) there is general trend of increase through the years. While Education had a decreasing trend for annual inflation. This decrease,show the decrease in money towards the Education division. Additionally, it was surprising to note the serevre dip in the trend for Communication.**
 
 ::: render-commit-push
 If you haven't yet done so since Part 1, now is a good time to render, commit, and push. Make sure that you commit and push all changed documents and your Git pane is completely empty before proceeding.
